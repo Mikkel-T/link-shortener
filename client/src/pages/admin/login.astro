@@ -1,0 +1,25 @@
+---
+import BaseLayout from 'layout:BaseLayout';
+---
+
+<BaseLayout>
+  <div class="h-full w-full flex justify-center items-center">
+    <form
+      action="/api/admin/login"
+      method="post"
+      class="flex items-center w-full justify-center flex-col"
+    >
+      <input
+        type="password"
+        placeholder="Admin password"
+        name="password"
+        class="m-auto w-64 bg-dracula-dark p-3 rounded-md"
+      />
+      <input
+        type="submit"
+        value="Submit"
+        class="p-2 w-fit mt-5 bg-dracula-green-800 rounded-md"
+      />
+    </form>
+  </div>
+</BaseLayout>

@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dracula-darker text-dracula-light;
+  }
+
+  html,
+  body {
+    @apply h-full w-full;
+  }
+}

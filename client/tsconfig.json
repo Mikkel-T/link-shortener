@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@*": ["src/*"],
+      "layout:*": ["src/layouts/*.astro"]
+    }
+  }
+}
