@@ -30,7 +30,7 @@
               emitter.emit('fetchUrls');
               res();
             } else {
-              rej("Couldn't add link");
+              rej(response.message);
             }
           });
       }),

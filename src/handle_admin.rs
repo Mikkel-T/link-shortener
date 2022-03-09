@@ -1,4 +1,4 @@
-use crate::mongo::{delete_links, get_links, insert_link, update_link, Link};
+use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, Link};
 use actix_identity::Identity;
 use actix_web::{http::header, web, HttpResponse};
 use mongodb::Collection;
@@ -40,9 +40,17 @@ pub async fn add_link(
 ) -> HttpResponse {
     match id.identity() {
         Some(_) => {
-            let oid = insert_link(link.slug.clone(), link.url.clone(), &links).await;
-            HttpResponse::Created()
-                .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
+            match get_link(link.slug.clone(), &links).await {
+                Some(_) => {
+                    HttpResponse::Conflict()
+                        .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", link.slug)}))
+                },
+                None => {
+                    let oid = insert_link(link.slug.clone(), link.url.clone(), &links).await;
+                    HttpResponse::Created()
+                        .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
+                },
+            }
         }
         None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
     }

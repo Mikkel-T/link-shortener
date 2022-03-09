@@ -23,7 +23,7 @@
               emitter.emit('fetchUrls');
               res();
             } else {
-              rej("Couldn't delete link");
+              rej(response.message);
             }
           });
       }),
@@ -52,7 +52,7 @@
               emitter.emit('fetchUrls');
               res();
             } else {
-              rej("Couldn't update link");
+              rej(response.message);
             }
             editing = false;
           });
