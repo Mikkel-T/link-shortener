@@ -21,7 +21,7 @@ async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> H
         Some(url) => HttpResponse::SeeOther()
             .insert_header((header::LOCATION, url))
             .finish(),
-        None => HttpResponse::NotFound().body("404 Link not found "),
+        None => HttpResponse::NotFound().body("404 Link not found"),
     }
 }
 
