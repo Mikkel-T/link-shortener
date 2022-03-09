@@ -28,8 +28,8 @@
           });
       }),
       {
-        loading: `Deleting short url with slug ${url.slug}`,
-        success: `Deleted short url with slug ${url.slug}`,
+        loading: `Deleting short url with slug "${url.slug}"`,
+        success: `Deleted short url with slug "${url.slug}"`,
         error: (err) => `Error: ${err}`,
       }
     );
@@ -58,8 +58,8 @@
           });
       }),
       {
-        loading: 'Editing short url',
-        success: 'Edited short url',
+        loading: `Editing short url with slug "${url.slug}"`,
+        success: `Edited short url with slug "${url.slug}"`,
         error: (err) => `Error: ${err}`,
       }
     );

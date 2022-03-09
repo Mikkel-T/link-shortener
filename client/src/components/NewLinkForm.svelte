@@ -35,8 +35,8 @@
           });
       }),
       {
-        loading: 'Creating short link',
-        success: 'Created short link',
+        loading: `Creating short url with slug "${newLink.slug}"`,
+        success: `Created short url with slug "${newLink.slug}"`,
         error: (err) => `Error: ${err}`,
       }
     );
