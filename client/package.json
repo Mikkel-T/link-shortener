@@ -12,13 +12,13 @@
   "devDependencies": {
     "@astrojs/renderer-react": "^0.5.0",
     "@astrojs/renderer-svelte": "^0.5.1",
-    "astro": "^0.23.7",
+    "astro": "^0.24.0-next.1",
     "autoprefixer": "^10.4.2",
-    "cssnano": "^5.1.0",
+    "cssnano": "^5.1.2",
     "prettier": "^2.5.1",
     "prettier-plugin-astro": "^0.0.12",
     "prettier-plugin-tailwindcss": "^0.1.8",
-    "tailwind-dracula": "^1.0.7",
+    "tailwind-dracula": "^1.1.0",
     "tailwindcss": "^3.0.23"
   },
   "dependencies": {
