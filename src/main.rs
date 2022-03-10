@@ -45,14 +45,14 @@ async fn login(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
                 .insert_header((header::LOCATION, "/admin"))
                 .finish(),
         ),
-        None => Either::Right(NamedFile::open("client/dist/admin/login/index.html")),
+        None => Either::Right(NamedFile::open("client/dist/login/index.html")),
     }
 }
 
 #[get("/admin/dash")]
 async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
     match id.identity() {
-        Some(_) => Either::Right(NamedFile::open("client/dist/admin/dash/index.html")),
+        Some(_) => Either::Right(NamedFile::open("client/dist/dash/index.html")),
         None => Either::Left(
             HttpResponse::SeeOther()
                 .insert_header((header::LOCATION, "/admin"))
