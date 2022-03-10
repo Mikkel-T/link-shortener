@@ -5,6 +5,7 @@ use mongodb::Collection;
 use serde::Deserialize;
 use serde_json::json;
 use std::env;
+use url::Url;
 
 #[derive(Deserialize)]
 pub struct Info {
@@ -46,9 +47,16 @@ pub async fn add_link(
                         .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", link.slug)}))
                 },
                 None => {
-                    let oid = insert_link(link.slug.clone(), link.url.clone(), &links).await;
-                    HttpResponse::Created()
-                        .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
+                    match Url::parse(&link.url).is_ok() {
+                        true => {
+                            let oid = insert_link(link.slug.clone(), link.url.clone(), &links).await;
+                            HttpResponse::Created()
+                                .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
+                        }
+                        false => {
+                            HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", link.url)}))
+                        }
+                    }
                 },
             }
         }
@@ -85,8 +93,15 @@ pub async fn update(
 ) -> HttpResponse {
     match id.identity() {
         Some(_) => {
-            let modified = update_link(slug.into_inner(), body.new_url.clone(), &links).await;
-            HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
+            match Url::parse(&body.new_url).is_ok() {
+                true => {
+                    let modified = update_link(slug.into_inner(), body.new_url.clone(), &links).await;
+                    HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
+                }
+                false => {
+                    HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.new_url)}))
+                }
+            }
         }
         None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
     }
