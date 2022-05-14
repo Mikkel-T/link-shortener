@@ -1,10 +1,10 @@
 <script>
-  import IoMdTrash from 'svelte-icons/io/IoMdTrash.svelte';
-  import FaPencilAlt from 'svelte-icons/fa/FaPencilAlt.svelte';
-  import FaCopy from 'svelte-icons/fa/FaCopy.svelte';
-  import FaCheck from 'svelte-icons/fa/FaCheck.svelte';
-  import Clipboard from '@components/Clipboard.svelte';
-  import { emitter } from '@event/event';
+  import IoMdTrash from "svelte-icons/io/IoMdTrash.svelte";
+  import FaPencilAlt from "svelte-icons/fa/FaPencilAlt.svelte";
+  import FaCopy from "svelte-icons/fa/FaCopy.svelte";
+  import FaCheck from "svelte-icons/fa/FaCheck.svelte";
+  import Clipboard from "@components/Clipboard.svelte";
+  import { emitter } from "@event/event";
   export let url;
 
   let editing = false;
@@ -12,15 +12,15 @@
 
   function deleteSlug() {
     emitter.emit(
-      'toast-promise',
+      "toast-promise",
       new Promise((res, rej) => {
         fetch(`/api/admin/links/${url.slug}`, {
-          method: 'DELETE',
+          method: "DELETE",
         })
           .then((response) => response.json())
           .then((response) => {
             if (response.success) {
-              emitter.emit('fetchUrls');
+              emitter.emit("fetchUrls");
               res();
             } else {
               rej(response.message);
@@ -37,19 +37,19 @@
 
   function editUrl() {
     emitter.emit(
-      'toast-promise',
+      "toast-promise",
       new Promise((res, rej) => {
         fetch(`/api/admin/links/${url.slug}`, {
-          method: 'PATCH',
+          method: "PATCH",
           body: JSON.stringify({ new_url: newUrl }),
           headers: {
-            'content-type': 'application/json',
+            "content-type": "application/json",
           },
         })
           .then((response) => response.json())
           .then((response) => {
             if (response.success) {
-              emitter.emit('fetchUrls');
+              emitter.emit("fetchUrls");
               res();
             } else {
               rej(response.message);
@@ -73,7 +73,8 @@
 
 <tr key={url.slug}>
   <td class="w-1/4 text-center">
-    <Clipboard text={`${window.location.origin}/${url.slug}`}>
+    <!-- TODO Dynamically get URL -->
+    <Clipboard text={`https://link.mikkel-t.com/${url.slug}`}>
       <span class="cursor-pointer">
         {url.slug}
         <div

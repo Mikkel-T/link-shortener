@@ -1,33 +1,33 @@
 <script>
-  import { nanoid } from 'nanoid';
-  import { emitter } from '@event/event';
+  import { nanoid } from "nanoid";
+  import { emitter } from "@event/event";
 
   let newLink = {
-    slug: '',
-    url: '',
+    slug: "",
+    url: "",
   };
 
   function submit() {
     emitter.emit(
-      'toast-promise',
+      "toast-promise",
       new Promise((res, rej) => {
         if (!newLink.slug) newLink.slug = nanoid(7);
-        fetch('/api/admin/links', {
-          method: 'POST',
+        fetch("/api/admin/links", {
+          method: "POST",
           body: JSON.stringify(newLink),
           headers: {
-            'content-type': 'application/json',
+            "content-type": "application/json",
           },
         })
           .then((response) => response.json())
           .then((response) => {
             if (response.success) {
               newLink = {
-                slug: '',
-                url: '',
+                slug: "",
+                url: "",
               };
 
-              emitter.emit('fetchUrls');
+              emitter.emit("fetchUrls");
               res();
             } else {
               rej(response.message);
@@ -49,7 +49,7 @@
       <label for="slug">Slug</label>
       <br />
       <input
-        bind:value={newLink['slug']}
+        bind:value={newLink["slug"]}
         name="slug"
         class="w-full rounded-md border border-dracula-light bg-transparent p-2"
       />
@@ -58,7 +58,7 @@
       <label for="url">URL</label>
       <br />
       <input
-        bind:value={newLink['url']}
+        bind:value={newLink["url"]}
         name="url"
         class="w-full rounded-md border border-dracula-light bg-transparent p-2"
         type="url"

@@ -1,12 +1,12 @@
 <script>
-  import copy from 'copy-to-clipboard';
-  import { emitter } from '@event/event';
+  import copy from "copy-to-clipboard";
+  import { emitter } from "@event/event";
   export let text;
-  export let message = 'Copied link';
+  export let message = "Copied link";
   function onCopy() {
     copy(text);
-    emitter.emit('toast', message, {
-      type: 'success',
+    emitter.emit("toast", message, {
+      type: "success",
     });
   }
 </script>

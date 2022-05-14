@@ -5,6 +5,7 @@ use actix_files::{Files, NamedFile};
 use actix_identity::{CookieIdentityPolicy, Identity, IdentityService};
 use actix_web::{get, http::header, web, App, Either, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
+use futures::future;
 use mongo::{get_client, get_link, Link};
 use mongodb::Collection;
 use std::env;
@@ -25,37 +26,37 @@ async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> H
     }
 }
 
-#[get("/admin")]
+#[get("/")]
 async fn admin(id: Identity) -> HttpResponse {
     match id.identity() {
         Some(_) => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/admin/dash"))
+            .insert_header((header::LOCATION, "/dash"))
             .finish(),
         None => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/admin/login"))
+            .insert_header((header::LOCATION, "/login"))
             .finish(),
     }
 }
 
-#[get("/admin/login")]
+#[get("/login")]
 async fn login(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
     match id.identity() {
         Some(_) => Either::Left(
             HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/admin"))
+                .insert_header((header::LOCATION, "/"))
                 .finish(),
         ),
         None => Either::Right(NamedFile::open("client/dist/login/index.html")),
     }
 }
 
-#[get("/admin/dash")]
+#[get("/dash")]
 async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
     match id.identity() {
         Some(_) => Either::Right(NamedFile::open("client/dist/dash/index.html")),
         None => Either::Left(
             HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/admin"))
+                .insert_header((header::LOCATION, "/"))
                 .finish(),
         ),
     }
@@ -68,7 +69,17 @@ async fn main() -> std::io::Result<()> {
     let db = client.database("link-shortener");
     let links = db.collection::<Link>("links");
 
-    HttpServer::new(move || {
+    let s1 = HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(links.clone()))
+            .service(home)
+            .service(index)
+    })
+    .bind("0.0.0.0:8080")?
+    .run();
+
+    let links = db.collection::<Link>("links");
+    let s2 = HttpServer::new(move || {
         App::new()
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(env::var("PASSWORD_KEY").unwrap().as_bytes())
@@ -76,7 +87,6 @@ async fn main() -> std::io::Result<()> {
                     .secure(false),
             ))
             .app_data(web::Data::new(links.clone()))
-            .service(home)
             .service(admin)
             .service(login)
             .service(dash)
@@ -95,10 +105,12 @@ async fn main() -> std::io::Result<()> {
                     .service(web::resource("/login").route(web::post().to(handle_admin::login)))
                     .service(web::resource("/logout").route(web::get().to(handle_admin::logout))),
             )
-            .service(Files::new("/assets", "client/dist/assets"))
-            .service(index)
+            .service(Files::new("/", "client/dist"))
     })
-    .bind("0.0.0.0:8080")?
-    .run()
-    .await
+    .bind("0.0.0.0:8081")?
+    .run();
+
+    future::try_join(s1, s2).await?;
+
+    Ok(())
 }

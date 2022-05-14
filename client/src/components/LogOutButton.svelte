@@ -1,5 +1,5 @@
 <script>
-  import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
+  import FaSignOutAlt from "svelte-icons/fa/FaSignOutAlt.svelte";
 </script>
 
 <a

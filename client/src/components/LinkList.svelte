@@ -1,20 +1,20 @@
 <script>
-  import IoMdRefresh from 'svelte-icons/io/IoMdRefresh.svelte';
-  import TableRow from '@components/TableRow.svelte';
-  import { emitter } from '@event/event';
-  import { onMount } from 'svelte';
+  import IoMdRefresh from "svelte-icons/io/IoMdRefresh.svelte";
+  import TableRow from "@components/TableRow.svelte";
+  import { emitter } from "@event/event";
+  import { onMount } from "svelte";
 
   let urls = [];
 
-  emitter.on('fetchUrls', fetchUrls);
+  emitter.on("fetchUrls", fetchUrls);
 
   onMount(fetchUrls);
 
   function fetchUrls() {
     emitter.emit(
-      'toast-promise',
+      "toast-promise",
       new Promise((res, _rej) => {
-        fetch('/api/admin/links')
+        fetch("/api/admin/links")
           .then((r) => r.json())
           .then((r) => {
             urls = r;
