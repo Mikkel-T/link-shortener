@@ -8,6 +8,7 @@ use std::env;
 pub struct Link {
     pub slug: String,
     pub url: String,
+    pub expires_uses: Option<usize>,
 }
 
 pub async fn get_client() -> Client {
@@ -18,13 +19,19 @@ pub async fn get_client() -> Client {
     Client::with_options(client_options).unwrap()
 }
 
-pub async fn insert_link(slug: String, link: String, collection: &Collection<Link>) -> String {
+pub async fn insert_link(
+    slug: String,
+    link: String,
+    collection: &Collection<Link>,
+    expires_uses: Option<usize>,
+) -> String {
     from_bson::<ObjectId>(
         collection
             .insert_one(
                 Link {
-                    slug: slug,
+                    slug,
                     url: link,
+                    expires_uses,
                 },
                 None,
             )
@@ -37,12 +44,31 @@ pub async fn insert_link(slug: String, link: String, collection: &Collection<Lin
 }
 
 pub async fn get_link(slug: String, collection: &Collection<Link>) -> Option<String> {
-    match collection
-        .find_one(doc! {"slug": slug}, None)
+    let link = collection
+        .find_one(doc! {"slug": &slug}, None)
         .await
-        .unwrap()
-    {
-        Some(s) => Some(s.url),
+        .unwrap();
+    match link {
+        Some(l) => {
+            match l.expires_uses {
+                Some(uses) => {
+                    if uses > 1 {
+                        collection
+                            .update_one(
+                                doc! {"slug": &slug},
+                                doc! {"$inc": {"expires_uses": -1}},
+                                None,
+                            )
+                            .await
+                            .unwrap();
+                    } else {
+                        delete_links(slug, &collection).await;
+                    }
+                }
+                None => (),
+            }
+            Some(l.url)
+        }
         None => None,
     }
 }

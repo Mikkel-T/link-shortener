@@ -49,7 +49,7 @@ pub async fn add_link(
                 None => {
                     match Url::parse(&link.url).is_ok() {
                         true => {
-                            let oid = insert_link(link.slug.clone(), link.url.clone(), &links).await;
+                            let oid = insert_link(link.slug.clone(), link.url.clone(), &links, link.expires_uses).await;
                             HttpResponse::Created()
                                 .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
                         }
