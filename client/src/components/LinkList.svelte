@@ -22,8 +22,8 @@
           });
       }),
       {
-        loading: "Fetching URL's",
-        success: "Fetched URL's",
+        loading: "Fetching URLs",
+        success: "Fetched URLs",
         error: (err) => `Error: ${err}`,
       }
     );
@@ -44,6 +44,7 @@
     <tr>
       <th>Slug</th>
       <th>URL</th>
+      <th>Expires after</th>
       <th>Controls</th>
     </tr>
     {#each urls as url}

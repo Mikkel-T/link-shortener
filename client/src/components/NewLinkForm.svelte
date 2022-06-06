@@ -5,6 +5,11 @@
   let newLink = {
     slug: "",
     url: "",
+    expires_uses: null,
+  };
+
+  let expire_enabled = {
+    uses: false,
   };
 
   function submit() {
@@ -14,7 +19,12 @@
         if (!newLink.slug) newLink.slug = nanoid(7);
         fetch("/api/admin/links", {
           method: "POST",
-          body: JSON.stringify(newLink),
+          body: JSON.stringify({
+            ...newLink,
+            expires_uses: expire_enabled["uses"]
+              ? newLink["expires_uses"]
+              : null,
+          }),
           headers: {
             "content-type": "application/json",
           },
@@ -25,8 +35,12 @@
               newLink = {
                 slug: "",
                 url: "",
+                expires_uses: null,
               };
 
+              expire_enabled = {
+                uses: false,
+              };
               emitter.emit("fetchUrls");
               res();
             } else {
@@ -64,6 +78,24 @@
         type="url"
         required
       />
+    </div>
+    <div>
+      Expire
+      <div>
+        <input type="checkbox" bind:checked={expire_enabled["uses"]} />
+        <span class:text-dracula-darker-600={!expire_enabled["uses"]}>
+          after <input
+            type="number"
+            name="expires_uses"
+            min="1"
+            disabled={!expire_enabled["uses"]}
+            bind:value={newLink["expires_uses"]}
+            class="border-b {!expire_enabled['uses']
+              ? 'border-b-dracula-darker-600'
+              : 'border-b-dracula-light'} w-1/6 bg-transparent p-1"
+          /> uses
+        </span>
+      </div>
     </div>
     <div class="p-2 text-center">
       <input
