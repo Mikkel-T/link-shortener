@@ -92,12 +92,19 @@
         class="w-full rounded-md border border-white bg-transparent"
       />
     {:else}
-      <a href={url.url} class="underline text-dracula-cyan-700 break-all"
+      <a href={url.url} class="break-all text-dracula-cyan-700 underline"
         >{url.url}</a
       >
     {/if}
   </td>
-  <td class="w-1/4 text-center">
+  <td class="w-1/12 text-center">
+    {#if url.expires_uses}
+      {url.expires_uses} uses
+    {:else}
+      Never
+    {/if}
+  </td>
+  <td class="w-1/6 text-center">
     <button
       class="m-1 h-6 w-6 rounded-md bg-dracula-red p-1 hover:bg-dracula-red-500"
       on:click={deleteSlug}
@@ -113,7 +120,7 @@
       </button>
     {:else}
       <button
-        class="bg-dracula-orange-300 hover:bg-dracula-orange-400 p-1 rounded-md m-1 h-6 w-6"
+        class="m-1 h-6 w-6 rounded-md bg-dracula-orange-300 p-1 hover:bg-dracula-orange-400"
         on:click={edit}
       >
         <FaPencilAlt />
