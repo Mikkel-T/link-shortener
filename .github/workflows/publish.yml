@@ -1,0 +1,62 @@
+name: Publish
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+
+jobs:
+  publish-server:
+    name: Publish server for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            artifact_name: link-shortener
+            asset_name: link-shortener-linux
+          - os: windows-latest
+            artifact_name: link-shortener.exe
+            asset_name: link-shortener-windows.exe
+          - os: macos-latest
+            artifact_name: link-shortener
+            asset_name: link-shortener-macos
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+
+  publish-client:
+    name: Publish client
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install dependencies and build the client
+        working-directory: ./client
+        run: yarn && yarn build
+      - run: tar -czf link-shortener-client.tar.gz client/dist/
+      - name: Upload client to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: link-shortener-client.tar.gz
+          tag: ${{ github.ref }}
