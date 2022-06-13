@@ -13,7 +13,7 @@ use std::io::Error;
 
 #[get("/")]
 async fn home() -> impl Responder {
-    "Link shortener"
+    format!("Link shortener v{}", env!("CARGO_PKG_VERSION"))
 }
 
 #[get("/{slug}")]
