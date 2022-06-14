@@ -30,8 +30,15 @@ pub async fn login(id: Identity, pass: web::Form<Info>) -> HttpResponse {
     };
 
     HttpResponse::Found()
-        .insert_header((header::LOCATION, "/"))
+        .insert_header((header::LOCATION, "/dash"))
         .finish()
+}
+
+pub async fn auth_status(id: Identity) -> HttpResponse {
+    match id.identity() {
+        Some(name) => HttpResponse::Ok().json(json!({"logged_in": true, "name": name})),
+        None => HttpResponse::Unauthorized().json(json!({"logged_in": false})),
+    }
 }
 
 pub async fn add_link(

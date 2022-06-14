@@ -28,15 +28,8 @@ async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> H
 }
 
 #[get("/")]
-async fn admin(id: Identity) -> HttpResponse {
-    match id.identity() {
-        Some(_) => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/dash"))
-            .finish(),
-        None => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/login"))
-            .finish(),
-    }
+async fn admin() -> Result<NamedFile, Error> {
+    NamedFile::open("client/dist/index.html")
 }
 
 #[get("/login")]
@@ -44,7 +37,7 @@ async fn login(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
     match id.identity() {
         Some(_) => Either::Left(
             HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/"))
+                .insert_header((header::LOCATION, "/dash"))
                 .finish(),
         ),
         None => Either::Right(NamedFile::open("client/dist/login/index.html")),
@@ -66,17 +59,18 @@ async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-    let login_exists = Path::new("client/dist/login/index.html").exists();
-    let dash_exists = Path::new("client/dist/dash/index.html").exists();
-
-    if !login_exists || !dash_exists {
-        println!("Missing the following HTML files. Aborting");
-        if !login_exists {
-            println!("client/dist/login/index.html");
+    let paths = vec!["client/dist/login/index.html", "client/dist/dash/index.html", "client/dist/index.html"];
+    let mut missing_paths = Vec::new();
+    for path in paths {
+        if !Path::new(path).exists() {
+            missing_paths.push(path)
         }
+    }
 
-        if !dash_exists {
-            println!("client/dist/dash/index.html");
+    if missing_paths.len() > 0 {
+        println!("Missing the following HTML files. Aborting");
+        for path in missing_paths {
+            println!("{path}");
         }
         std::process::exit(1);
     }
@@ -136,7 +130,11 @@ async fn main() -> std::io::Result<()> {
                             .route(web::delete().to(handle_admin::delete)),
                     )
                     .service(web::resource("/login").route(web::post().to(handle_admin::login)))
-                    .service(web::resource("/logout").route(web::get().to(handle_admin::logout))),
+                    .service(web::resource("/logout").route(web::get().to(handle_admin::logout)))
+                    .service(
+                        web::resource("/auth/status")
+                            .route(web::get().to(handle_admin::auth_status)),
+                    ),
             )
             .service(Files::new("/", "client/dist"))
     })

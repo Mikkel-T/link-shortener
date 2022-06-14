@@ -1,0 +1,13 @@
+---
+import AuthCheck from "@components/AuthCheck.svelte";
+import BaseLayout from "layout:BaseLayout";
+---
+
+<BaseLayout>
+  <div class="h-full w-full flex justify-center items-center flex-col">
+    <div class="text-center text-2xl font-bold mt-2">
+      Admin dashboard for the link shortener
+    </div>
+    <AuthCheck client:load />
+  </div>
+</BaseLayout>
