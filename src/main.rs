@@ -10,6 +10,7 @@ use mongo::{get_client, get_link, Link};
 use mongodb::Collection;
 use std::env;
 use std::io::Error;
+use std::path::Path;
 
 #[get("/")]
 async fn home() -> impl Responder {
@@ -65,6 +66,38 @@ async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    let login_exists = Path::new("client/dist/login/index.html").exists();
+    let dash_exists = Path::new("client/dist/dash/index.html").exists();
+
+    if !login_exists || !dash_exists {
+        println!("Missing the following HTML files. Aborting");
+        if !login_exists {
+            println!("client/dist/login/index.html");
+        }
+
+        if !dash_exists {
+            println!("client/dist/dash/index.html");
+        }
+        std::process::exit(1);
+    }
+
+    let env_vars = vec!["PASSWORD_KEY", "MONGO_CONNECTION_STRING", "ADMIN_PASSWORD"];
+    let mut missing_env_vars = Vec::new();
+
+    for var in env_vars {
+        if !env::var(var).is_ok() {
+            missing_env_vars.push(var);
+        }
+    }
+
+    if missing_env_vars.len() > 0 {
+        println!("Missing the following environment variables. Aborting");
+        for var in missing_env_vars {
+            println!("{var}");
+        }
+        std::process::exit(1);
+    }
+
     let client = get_client().await;
     let db = client.database("link-shortener");
     let links = db.collection::<Link>("links");
