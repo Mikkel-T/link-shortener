@@ -101,7 +101,7 @@
       <input
         type="submit"
         value="Create"
-        class="cursor-pointer rounded-md bg-dracula-blue p-3 px-5"
+        class="cursor-pointer rounded-md bg-dracula-blue p-3 px-5 hover:bg-dracula-blue-700"
       />
     </div>
   </div>

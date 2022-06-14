@@ -3,7 +3,7 @@ import BaseLayout from "layout:BaseLayout";
 ---
 
 <BaseLayout>
-  <div class="h-full w-full flex justify-center items-center">
+  <div class="h-full w-full flex justify-center items-center flex-col">
     <form
       action="/api/admin/login"
       method="post"
@@ -18,7 +18,7 @@ import BaseLayout from "layout:BaseLayout";
       <input
         type="submit"
         value="Submit"
-        class="p-2 w-fit mt-5 bg-dracula-green-800 rounded-md"
+        class="p-2 w-fit mt-5 bg-dracula-green-800 rounded-md cursor-pointer hover:bg-dracula-green-900"
       />
     </form>
   </div>

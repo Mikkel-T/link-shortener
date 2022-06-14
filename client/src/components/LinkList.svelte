@@ -31,7 +31,7 @@
 </script>
 
 <button
-  class="m-auto mb-3 flex items-center justify-center rounded-md bg-dracula-purple p-2"
+  class="m-auto mb-3 flex items-center justify-center rounded-md bg-dracula-purple p-2 hover:bg-dracula-purple-400"
   on:click={fetchUrls}
 >
   <span class="mr-1 h-5 w-5">
