@@ -19,7 +19,7 @@ pub struct UpdateBody {
 
 pub async fn logout(id: Identity) -> HttpResponse {
     id.forget();
-    HttpResponse::SeeOther()
+    HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
         .finish()
 }
@@ -29,7 +29,7 @@ pub async fn login(id: Identity, pass: web::Form<Info>) -> HttpResponse {
         id.remember("admin".to_owned());
     };
 
-    HttpResponse::SeeOther()
+    HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
         .finish()
 }

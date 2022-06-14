@@ -3,7 +3,7 @@ pub mod mongo;
 
 use actix_files::{Files, NamedFile};
 use actix_identity::{CookieIdentityPolicy, Identity, IdentityService};
-use actix_web::{get, http::header, web, App, Either, HttpResponse, HttpServer, Responder};
+use actix_web::{get, http::header, web, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
 use futures::future;
 use mongo::{get_client, get_link, Link};
@@ -28,38 +28,10 @@ async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> H
 }
 
 #[get("/")]
-async fn admin(id: Identity) -> HttpResponse {
+async fn admin(id: Identity) -> Result<NamedFile, Error> {
     match id.identity() {
-        Some(_) => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/dash"))
-            .finish(),
-        None => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, "/login"))
-            .finish(),
-    }
-}
-
-#[get("/login")]
-async fn login(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
-    match id.identity() {
-        Some(_) => Either::Left(
-            HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/"))
-                .finish(),
-        ),
-        None => Either::Right(NamedFile::open("client/dist/login/index.html")),
-    }
-}
-
-#[get("/dash")]
-async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
-    match id.identity() {
-        Some(_) => Either::Right(NamedFile::open("client/dist/dash/index.html")),
-        None => Either::Left(
-            HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/"))
-                .finish(),
-        ),
+        Some(_) => NamedFile::open("client/dist/dash/index.html"),
+        None => NamedFile::open("client/dist/login/index.html"),
     }
 }
 
@@ -121,8 +93,6 @@ async fn main() -> std::io::Result<()> {
             ))
             .app_data(web::Data::new(links.clone()))
             .service(admin)
-            .service(login)
-            .service(dash)
             .service(
                 web::scope("/api/admin")
                     .service(
@@ -136,7 +106,7 @@ async fn main() -> std::io::Result<()> {
                             .route(web::delete().to(handle_admin::delete)),
                     )
                     .service(web::resource("/login").route(web::post().to(handle_admin::login)))
-                    .service(web::resource("/logout").route(web::get().to(handle_admin::logout))),
+                    .service(web::resource("/logout").route(web::post().to(handle_admin::logout))),
             )
             .service(Files::new("/", "client/dist"))
     })
