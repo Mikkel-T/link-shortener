@@ -1,6 +1,5 @@
 use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, Link};
 use actix_identity::Identity;
-use actix_web::http::header::CacheDirective;
 use actix_web::{http::header, web, HttpResponse};
 use mongodb::Collection;
 use serde::Deserialize;
@@ -22,8 +21,6 @@ pub async fn logout(id: Identity) -> HttpResponse {
     id.forget();
     HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
-        .insert_header(header::CacheControl(vec![CacheDirective::NoCache]))
-        .insert_header(("clear-site-data", "cache"))
         .finish()
 }
 
@@ -34,8 +31,6 @@ pub async fn login(id: Identity, pass: web::Form<Info>) -> HttpResponse {
 
     HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
-        .insert_header(header::CacheControl(vec![CacheDirective::NoCache]))
-        .insert_header(("clear-site-data", "cache"))
         .finish()
 }
 
