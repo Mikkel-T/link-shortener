@@ -1,5 +1,5 @@
 <script>
-  import IoMdRefresh from "svelte-icons/io/IoMdRefresh.svelte";
+  import Icon from "@iconify/svelte";
   import TableRow from "@components/TableRow.svelte";
   import { emitter } from "@event/event";
   import { onMount } from "svelte";
@@ -35,9 +35,7 @@
   class="m-auto mb-3 flex items-center justify-center rounded-md bg-dracula-purple p-2 hover:bg-dracula-purple-400"
   on:click={fetchUrls}
 >
-  <span class="mr-1 h-5 w-5">
-    <IoMdRefresh />
-  </span>
+  <Icon class="mr-1 inline h-5 w-5" icon="ic:round-refresh" />
   Refresh urls
 </button>
 {#if urls[0]}

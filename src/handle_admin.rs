@@ -1,5 +1,6 @@
 use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, Link};
 use actix_identity::Identity;
+use actix_web::http::header::CacheDirective;
 use actix_web::{http::header, web, HttpResponse};
 use mongodb::Collection;
 use serde::Deserialize;
@@ -21,6 +22,8 @@ pub async fn logout(id: Identity) -> HttpResponse {
     id.forget();
     HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
+        .insert_header(header::CacheControl(vec![CacheDirective::NoCache]))
+        .insert_header(("clear-site-data", "cache"))
         .finish()
 }
 
@@ -31,6 +34,8 @@ pub async fn login(id: Identity, pass: web::Form<Info>) -> HttpResponse {
 
     HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
+        .insert_header(header::CacheControl(vec![CacheDirective::NoCache]))
+        .insert_header(("clear-site-data", "cache"))
         .finish()
 }
 
@@ -60,14 +65,14 @@ pub async fn add_link(
                 },
             }
         }
-        None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
+        None => unauthorized(),
     }
 }
 
 pub async fn fetch_links(id: Identity, links: web::Data<Collection<Link>>) -> HttpResponse {
     match id.identity() {
         Some(_) => HttpResponse::Ok().json(json!(get_links(&links).await)),
-        None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
+        None => unauthorized(),
     }
 }
 
@@ -81,7 +86,7 @@ pub async fn delete(
             let deleted = delete_links(slug.into_inner(), &links).await.deleted_count;
             HttpResponse::Ok().json(json!({"success": true, "deleted": deleted}))
         }
-        None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
+        None => unauthorized(),
     }
 }
 
@@ -103,6 +108,10 @@ pub async fn update(
                 }
             }
         }
-        None => HttpResponse::Unauthorized().body("You are not authorized to do this"),
+        None => unauthorized(),
     }
+}
+
+pub fn unauthorized() -> HttpResponse {
+    HttpResponse::Unauthorized().body("You are not authorized to do this")
 }

@@ -1,5 +1,5 @@
 <script>
-  import FaSignOutAlt from "svelte-icons/fa/FaSignOutAlt.svelte";
+  import Icon from "@iconify/svelte";
 </script>
 
 <form action="/api/admin/logout" method="post">
@@ -7,7 +7,7 @@
     type="submit"
     class="m-auto my-3 flex w-fit items-center justify-center rounded-md bg-dracula-red-500 p-2 px-4 hover:bg-dracula-red-600"
   >
-    <span class="mr-1 h-5 w-5"><FaSignOutAlt /></span>
+    <Icon class="mr-1 inline h-5 w-5" icon="ic:round-logout" />
     Sign out
   </button>
 </form>

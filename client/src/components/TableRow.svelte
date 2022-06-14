@@ -1,8 +1,5 @@
 <script>
-  import IoMdTrash from "svelte-icons/io/IoMdTrash.svelte";
-  import FaPencilAlt from "svelte-icons/fa/FaPencilAlt.svelte";
-  import FaCopy from "svelte-icons/fa/FaCopy.svelte";
-  import FaCheck from "svelte-icons/fa/FaCheck.svelte";
+  import Icon from "@iconify/svelte";
   import Clipboard from "@components/Clipboard.svelte";
   import { emitter } from "@event/event";
   export let url;
@@ -82,7 +79,7 @@
         <div
           class="m-1 inline-flex h-6 w-6 rounded-md bg-dracula-blue p-1 hover:bg-dracula-blue-700"
         >
-          <FaCopy />
+          <Icon class="h-fit w-fit" icon="ic:round-copy-all" />
         </div>
       </span>
     </Clipboard>
@@ -111,21 +108,21 @@
       class="m-1 h-6 w-6 rounded-md bg-dracula-red p-1 hover:bg-dracula-red-500"
       on:click={deleteSlug}
     >
-      <IoMdTrash />
+      <Icon class="h-fit w-fit" icon="ic:round-delete" />
     </button>
     {#if editing}
       <button
-        class="m-1 h-6 w-6 rounded-md bg-dracula-green p-1 hover:bg-dracula-green-500"
+        class="m-1 h-6 w-6 rounded-md bg-dracula-green-700 p-1 hover:bg-dracula-green-800"
         on:click={editUrl}
       >
-        <FaCheck />
+        <Icon class="h-fit w-fit" icon="ic:round-check" />
       </button>
     {:else}
       <button
         class="m-1 h-6 w-6 rounded-md bg-dracula-orange-300 p-1 hover:bg-dracula-orange-400"
         on:click={edit}
       >
-        <FaPencilAlt />
+        <Icon class="h-fit w-fit" icon="ic:round-edit" />
       </button>
     {/if}
   </td>
