@@ -46,12 +46,13 @@
             } else {
               rej(response.message);
             }
-          });
+          })
+          .catch((e) => rej(e));
       }),
       {
         loading: `Creating short url with slug "${newLink.slug}"`,
         success: `Created short url with slug "${newLink.slug}"`,
-        error: (err) => `Error: ${err}`,
+        error: (err) => `Error creating short url: ${err}`,
       }
     );
   }

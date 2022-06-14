@@ -13,18 +13,19 @@
   function fetchUrls() {
     emitter.emit(
       "toast-promise",
-      new Promise((res, _rej) => {
+      new Promise((res, rej) => {
         fetch("/api/admin/links")
           .then((r) => r.json())
           .then((r) => {
             urls = r;
             res();
-          });
+          })
+          .catch((e) => rej(e));
       }),
       {
         loading: "Fetching URLs",
         success: "Fetched URLs",
-        error: (err) => `Error: ${err}`,
+        error: (err) => `Error fetching URLs: ${err}`,
       }
     );
   }

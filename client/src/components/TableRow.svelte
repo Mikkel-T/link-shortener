@@ -25,12 +25,13 @@
             } else {
               rej(response.message);
             }
-          });
+          })
+          .catch((e) => rej(e));
       }),
       {
         loading: `Deleting short url with slug "${url.slug}"`,
         success: `Deleted short url with slug "${url.slug}"`,
-        error: (err) => `Error: ${err}`,
+        error: (err) => `Error deleting short url: ${err}`,
       }
     );
   }
@@ -55,12 +56,13 @@
               rej(response.message);
             }
             editing = false;
-          });
+          })
+          .catch((e) => rej(e));
       }),
       {
         loading: `Editing short url with slug "${url.slug}"`,
         success: `Edited short url with slug "${url.slug}"`,
-        error: (err) => `Error: ${err}`,
+        error: (err) => `Error editing short url: ${err}`,
       }
     );
   }
