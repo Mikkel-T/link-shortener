@@ -59,7 +59,11 @@ async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-    let paths = vec!["client/dist/login/index.html", "client/dist/dash/index.html", "client/dist/index.html"];
+    let paths = vec![
+        "client/dist/login/index.html",
+        "client/dist/dash/index.html",
+        "client/dist/index.html",
+    ];
     let mut missing_paths = Vec::new();
     for path in paths {
         if !Path::new(path).exists() {

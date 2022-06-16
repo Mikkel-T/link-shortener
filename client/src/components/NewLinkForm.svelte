@@ -41,7 +41,7 @@
               expire_enabled = {
                 uses: false,
               };
-              emitter.emit("fetchUrls");
+              emitter.emit("fetchLinks");
               res();
             } else {
               rej(response.message);
@@ -50,9 +50,9 @@
           .catch((e) => rej(e));
       }),
       {
-        loading: `Creating short url with slug "${newLink.slug}"`,
-        success: `Created short url with slug "${newLink.slug}"`,
-        error: (err) => `Error creating short url: ${err}`,
+        loading: `Creating short link with slug "${newLink.slug}"`,
+        success: `Created short link with slug "${newLink.slug}"`,
+        error: (err) => `Error creating short link: ${err}`,
       }
     );
   }

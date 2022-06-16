@@ -94,11 +94,11 @@ pub async fn delete_links(
 
 pub async fn update_link(
     slug: String,
-    new_url: String,
+    new_link: Link,
     collection: &Collection<Link>,
 ) -> mongodb::results::UpdateResult {
     collection
-        .update_one(doc! {"slug": &slug}, doc! {"$set": {"url": new_url}}, None)
+        .replace_one(doc! {"slug": &slug}, new_link, None)
         .await
         .unwrap()
 }

@@ -12,11 +12,6 @@ pub struct Info {
     password: String,
 }
 
-#[derive(Deserialize)]
-pub struct UpdateBody {
-    new_url: String,
-}
-
 pub async fn logout(id: Identity) -> HttpResponse {
     id.forget();
     HttpResponse::Found()
@@ -95,18 +90,22 @@ pub async fn delete(
 pub async fn update(
     id: Identity,
     links: web::Data<Collection<Link>>,
-    body: web::Json<UpdateBody>,
+    body: web::Json<Link>,
     slug: web::Path<String>,
 ) -> HttpResponse {
     match id.identity() {
         Some(_) => {
-            match Url::parse(&body.new_url).is_ok() {
+            if slug.clone() != body.slug {
+                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("Slugs are not the same, the slug being edited ({slug}) is not the same as the updated \"{}\" ", body.slug)}));
+            }
+
+            match Url::parse(&body.url).is_ok() {
                 true => {
-                    let modified = update_link(slug.into_inner(), body.new_url.clone(), &links).await;
+                    let modified = update_link(slug.into_inner(), body.into_inner(), &links).await;
                     HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
                 }
                 false => {
-                    HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.new_url)}))
+                    HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}))
                 }
             }
         }

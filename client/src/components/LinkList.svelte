@@ -4,28 +4,28 @@
   import { emitter } from "@event/event";
   import { onMount } from "svelte";
 
-  let urls = [];
+  let links = [];
 
-  emitter.on("fetchUrls", fetchUrls);
+  emitter.on("fetchLinks", fetchLinks);
 
-  onMount(fetchUrls);
+  onMount(fetchLinks);
 
-  function fetchUrls() {
+  function fetchLinks() {
     emitter.emit(
       "toast-promise",
       new Promise((res, rej) => {
         fetch("/api/admin/links")
           .then((r) => r.json())
           .then((r) => {
-            urls = r;
+            links = r;
             res();
           })
           .catch((e) => rej(e));
       }),
       {
-        loading: "Fetching URLs",
-        success: "Fetched URLs",
-        error: (err) => `Error fetching URLs: ${err}`,
+        loading: "Fetching links",
+        success: "Fetched links",
+        error: (err) => `Error fetching links: ${err}`,
       }
     );
   }
@@ -33,12 +33,12 @@
 
 <button
   class="m-auto mb-3 flex items-center justify-center rounded-md bg-dracula-purple p-2 hover:bg-dracula-purple-400"
-  on:click={fetchUrls}
+  on:click={fetchLinks}
 >
   <Icon class="mr-1 inline h-5 w-5" icon="ic:round-refresh" />
-  Refresh urls
+  Refresh links
 </button>
-{#if urls[0]}
+{#if links[0]}
   <table class="m-auto w-full px-1 md:w-5/6">
     <tr>
       <th>Slug</th>
@@ -46,8 +46,8 @@
       <th>Expires after</th>
       <th>Controls</th>
     </tr>
-    {#each urls as url}
-      <TableRow {url} />
+    {#each links as link}
+      <TableRow {link} />
     {/each}
   </table>
 {/if}
