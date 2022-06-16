@@ -73,6 +73,25 @@ pub async fn fetch_links(id: Identity, links: web::Data<Collection<Link>>) -> Ht
     }
 }
 
+pub async fn fetch_link(
+    id: Identity,
+    links: web::Data<Collection<Link>>,
+    slug: web::Path<String>,
+) -> HttpResponse {
+    match id.identity() {
+        Some(_) => {
+            match get_link(slug.clone(), &links).await {
+                Some(link) => {
+                    HttpResponse::Ok().json(json!({"success": true, "link": link}))}
+                None => {
+                    HttpResponse::NotFound().json(json!({"success": false, "message": format!("Coult not find link with the slug \"{slug}\"")}))
+                }
+            }
+        }
+        None => unauthorized(),
+    }
+}
+
 pub async fn delete(
     id: Identity,
     links: web::Data<Collection<Link>>,
@@ -96,18 +115,15 @@ pub async fn update(
     match id.identity() {
         Some(_) => {
             if slug.clone() != body.slug {
-                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("Slugs are not the same, the slug being edited ({slug}) is not the same as the updated \"{}\" ", body.slug)}));
+                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("Slugs are not the same, the slug being edited ({slug}) is not the same as the updated \"{}\"", body.slug)}));
             }
 
-            match Url::parse(&body.url).is_ok() {
-                true => {
-                    let modified = update_link(slug.into_inner(), body.into_inner(), &links).await;
-                    HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
-                }
-                false => {
-                    HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}))
-                }
+            if Url::parse(&body.url).is_err() {
+                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}));
             }
+
+            let modified = update_link(slug.into_inner(), body.into_inner(), &links).await;
+            HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
         }
         None => unauthorized(),
     }

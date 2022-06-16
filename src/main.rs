@@ -6,7 +6,7 @@ use actix_identity::{CookieIdentityPolicy, Identity, IdentityService};
 use actix_web::{get, http::header, web, App, Either, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
 use futures::future;
-use mongo::{get_client, get_link, Link};
+use mongo::{get_client, use_link, Link};
 use mongodb::Collection;
 use std::env;
 use std::io::Error;
@@ -19,7 +19,7 @@ async fn home() -> impl Responder {
 
 #[get("/{slug}")]
 async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> HttpResponse {
-    match get_link(slug.into_inner(), &links).await {
+    match use_link(slug.into_inner(), &links).await {
         Some(url) => HttpResponse::SeeOther()
             .insert_header((header::LOCATION, url))
             .finish(),
@@ -130,6 +130,7 @@ async fn main() -> std::io::Result<()> {
                     )
                     .service(
                         web::resource("/links/{slug}")
+                            .route(web::get().to(handle_admin::fetch_link))
                             .route(web::patch().to(handle_admin::update))
                             .route(web::delete().to(handle_admin::delete)),
                     )

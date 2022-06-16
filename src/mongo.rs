@@ -43,7 +43,7 @@ pub async fn insert_link(
     .to_hex()
 }
 
-pub async fn get_link(slug: String, collection: &Collection<Link>) -> Option<String> {
+pub async fn use_link(slug: String, collection: &Collection<Link>) -> Option<String> {
     let link = collection
         .find_one(doc! {"slug": &slug}, None)
         .await
@@ -71,6 +71,13 @@ pub async fn get_link(slug: String, collection: &Collection<Link>) -> Option<Str
         }
         None => None,
     }
+}
+
+pub async fn get_link(slug: String, collection: &Collection<Link>) -> Option<Link> {
+    collection
+        .find_one(doc! {"slug": &slug}, None)
+        .await
+        .unwrap()
 }
 
 pub async fn get_links(collection: &Collection<Link>) -> Vec<Link> {
