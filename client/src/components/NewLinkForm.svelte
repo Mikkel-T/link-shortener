@@ -3,7 +3,6 @@
   import { emitter } from "@event/event";
 
   let newLink = {
-    slug: "",
     url: "",
     expires_uses: null,
   };
@@ -16,7 +15,6 @@
     emitter.emit(
       "toast-promise",
       new Promise((res, rej) => {
-        if (!newLink.slug) newLink.slug = nanoid(7);
         fetch("/api/admin/links", {
           method: "POST",
           body: JSON.stringify({
@@ -42,7 +40,7 @@
                 uses: false,
               };
               emitter.emit("fetchLinks");
-              res();
+              res(response.slug);
             } else {
               rej(response.message);
             }
@@ -50,8 +48,8 @@
           .catch((e) => rej(e));
       }),
       {
-        loading: `Creating short link with slug "${newLink.slug}"`,
-        success: `Created short link with slug "${newLink.slug}"`,
+        loading: `Creating short link`,
+        success: (slug) => `Created short link with slug "${slug}"`,
         error: (err) => `Error creating short link: ${err}`,
       }
     );

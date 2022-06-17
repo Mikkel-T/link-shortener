@@ -2,6 +2,7 @@ use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, 
 use actix_identity::Identity;
 use actix_web::{http::header, web, HttpResponse};
 use mongodb::Collection;
+use nanoid::nanoid;
 use serde::Deserialize;
 use serde_json::json;
 use std::env;
@@ -10,6 +11,19 @@ use url::Url;
 #[derive(Deserialize)]
 pub struct Info {
     password: String,
+}
+
+#[derive(Deserialize)]
+pub struct AddLinkBody {
+    slug: Option<String>,
+    url: String,
+    expires_uses: Option<usize>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateLinkBody {
+    url: String,
+    expires_uses: Option<usize>,
 }
 
 pub async fn logout(id: Identity) -> HttpResponse {
@@ -39,26 +53,29 @@ pub async fn auth_status(id: Identity) -> HttpResponse {
 pub async fn add_link(
     id: Identity,
     links: web::Data<Collection<Link>>,
-    link: web::Json<Link>,
+    link: web::Json<AddLinkBody>,
 ) -> HttpResponse {
     match id.identity() {
         Some(_) => {
-            match get_link(link.slug.clone(), &links).await {
+            let mut slug = nanoid!(7);
+            if let Some(s) = link.slug.clone() {
+                if !s.is_empty() {
+                    slug = s
+                }
+            }
+
+            match get_link(slug.clone(), &links).await {
                 Some(_) => {
                     HttpResponse::Conflict()
-                        .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", link.slug)}))
+                        .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", slug)}))
                 },
                 None => {
-                    match Url::parse(&link.url).is_ok() {
-                        true => {
-                            let oid = insert_link(link.slug.clone(), link.url.clone(), &links, link.expires_uses).await;
-                            HttpResponse::Created()
-                                .json(json!({"success": true, "slug": link.slug, "url": link.url, "id": oid}))
-                        }
-                        false => {
-                            HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", link.url)}))
-                        }
+                    if Url::parse(&link.url).is_err() {
+                        return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", link.url)}));
                     }
+
+                    let oid = insert_link(slug.clone(), link.url.clone(), &links, link.expires_uses).await;
+                    HttpResponse::Created().json(json!({"success": true, "slug": slug, "url": link.url, "id": oid}))
                 },
             }
         }
@@ -109,20 +126,25 @@ pub async fn delete(
 pub async fn update(
     id: Identity,
     links: web::Data<Collection<Link>>,
-    body: web::Json<Link>,
+    body: web::Json<UpdateLinkBody>,
     slug: web::Path<String>,
 ) -> HttpResponse {
     match id.identity() {
         Some(_) => {
-            if slug.clone() != body.slug {
-                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("Slugs are not the same, the slug being edited ({slug}) is not the same as the updated \"{}\"", body.slug)}));
-            }
-
             if Url::parse(&body.url).is_err() {
                 return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}));
             }
 
-            let modified = update_link(slug.into_inner(), body.into_inner(), &links).await;
+            let modified = update_link(
+                slug.clone(),
+                Link {
+                    slug: slug.into_inner(),
+                    url: body.url.clone(),
+                    expires_uses: body.expires_uses.clone(),
+                },
+                &links,
+            )
+            .await;
             HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
         }
         None => unauthorized(),
