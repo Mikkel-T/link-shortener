@@ -7,10 +7,13 @@ use actix_web::{get, http::header, web, App, Either, HttpResponse, HttpServer, R
 use dotenv::dotenv;
 use futures::future;
 use mongo::{get_client, use_link, Link};
-use mongodb::Collection;
+use mongodb::bson::doc;
+use mongodb::options::IndexOptions;
+use mongodb::{Collection, IndexModel};
 use std::env;
 use std::io::Error;
 use std::path::Path;
+use std::time::Duration;
 
 #[get("/")]
 async fn home() -> impl Responder {
@@ -99,6 +102,17 @@ async fn main() -> std::io::Result<()> {
     let client = get_client().await;
     let db = client.database("link-shortener");
     let links = db.collection::<Link>("links");
+    let model = IndexModel::builder()
+        .keys(doc! {
+            "expire_at": 1
+        })
+        .options(Some(
+            IndexOptions::builder()
+                .expire_after(Duration::from_secs(0))
+                .build(),
+        ))
+        .build();
+    links.create_index(model, None).await.unwrap();
 
     let s1 = HttpServer::new(move || {
         App::new()

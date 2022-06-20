@@ -3,7 +3,7 @@ use actix_identity::Identity;
 use actix_web::{http::header, web, HttpResponse};
 use mongodb::Collection;
 use nanoid::nanoid;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::env;
 use url::Url;
@@ -18,12 +18,23 @@ pub struct AddLinkBody {
     slug: Option<String>,
     url: String,
     expires_uses: Option<usize>,
+    expire_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateLinkBody {
     url: String,
     expires_uses: Option<usize>,
+    expire_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[serde_with::skip_serializing_none]
+#[derive(Serialize)]
+pub struct ResponseLinkBody {
+    slug: String,
+    url: String,
+    expires_uses: Option<usize>,
+    expire_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 pub async fn logout(id: Identity) -> HttpResponse {
@@ -74,7 +85,7 @@ pub async fn add_link(
                         return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", link.url)}));
                     }
 
-                    let oid = insert_link(slug.clone(), link.url.clone(), &links, link.expires_uses).await;
+                    let oid = insert_link(slug.clone(), link.url.clone(), &links, link.expires_uses, link.expire_at).await;
                     HttpResponse::Created().json(json!({"success": true, "slug": slug, "url": link.url, "id": oid}))
                 },
             }
@@ -84,8 +95,18 @@ pub async fn add_link(
 }
 
 pub async fn fetch_links(id: Identity, links: web::Data<Collection<Link>>) -> HttpResponse {
+    let links: Vec<ResponseLinkBody> = get_links(&links)
+        .await
+        .iter()
+        .map(|link| ResponseLinkBody {
+            slug: link.slug.clone(),
+            url: link.url.clone(),
+            expires_uses: link.expires_uses,
+            expire_at: link.expire_at,
+        })
+        .collect();
     match id.identity() {
-        Some(_) => HttpResponse::Ok().json(json!(get_links(&links).await)),
+        Some(_) => HttpResponse::Ok().json(json!(links)),
         None => unauthorized(),
     }
 }
@@ -99,7 +120,12 @@ pub async fn fetch_link(
         Some(_) => {
             match get_link(slug.clone(), &links).await {
                 Some(link) => {
-                    HttpResponse::Ok().json(json!({"success": true, "link": link}))}
+                    HttpResponse::Ok().json(json!({"success": true, "link": ResponseLinkBody {
+                        slug: link.slug.clone(),
+                        url: link.url.clone(),
+                        expires_uses: link.expires_uses,
+                        expire_at: link.expire_at
+                    }}))}
                 None => {
                     HttpResponse::NotFound().json(json!({"success": false, "message": format!("Coult not find link with the slug \"{slug}\"")}))
                 }
@@ -141,6 +167,7 @@ pub async fn update(
                     slug: slug.into_inner(),
                     url: body.url.clone(),
                     expires_uses: body.expires_uses.clone(),
+                    expire_at: body.expire_at.clone(),
                 },
                 &links,
             )

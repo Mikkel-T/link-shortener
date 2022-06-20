@@ -8,7 +8,7 @@ authors = ["Mikkel-T <mikkel@mikkel-t.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-mongodb = "2.2.2"
+mongodb = { version = "2.2.2", features = ["bson-serde_with", "bson-chrono-0_4"] }
 serde = { version = "1.0", features = ["derive"] }
 actix-web = "4.1.0"
 dotenv = "0.15.0"
@@ -18,3 +18,5 @@ serde_json = "1"
 futures = "0.3"
 url = "2"
 nanoid = "0.4.0"
+chrono = { version = "0.4", features = ["serde"] }
+serde_with = "1.14.0"

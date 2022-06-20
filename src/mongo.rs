@@ -4,11 +4,14 @@ use mongodb::{options::ClientOptions, Client, Collection};
 use serde::{Deserialize, Serialize};
 use std::env;
 
+#[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Link {
     pub slug: String,
     pub url: String,
     pub expires_uses: Option<usize>,
+    #[serde_as(as = "Option<mongodb::bson::DateTime>")]
+    pub expire_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 pub async fn get_client() -> Client {
@@ -24,6 +27,7 @@ pub async fn insert_link(
     link: String,
     collection: &Collection<Link>,
     expires_uses: Option<usize>,
+    expire_at: Option<chrono::DateTime<chrono::Utc>>,
 ) -> String {
     from_bson::<ObjectId>(
         collection
@@ -32,6 +36,7 @@ pub async fn insert_link(
                     slug,
                     url: link,
                     expires_uses,
+                    expire_at,
                 },
                 None,
             )
