@@ -23,7 +23,9 @@
           if (expire_enabled["uses"] && newLink["expires_uses"])
             req_link["expires_uses"] = newLink["expires_uses"];
           if (expire_enabled["time"] && newLink["expire_at"])
-            req_link["expire_at"] = new Date(newLink["expire_at"]).toISOString();
+            req_link["expire_at"] = new Date(
+              newLink["expire_at"]
+            ).toISOString();
         }
         fetch("/api/admin/links", {
           method: "POST",

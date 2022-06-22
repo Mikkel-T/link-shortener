@@ -97,10 +97,10 @@
     {/if}
   </td>
   <td class="w-1/12 text-center">
-    {#if link.expires_uses}
-      {link.expires_uses} uses
+    {#if link.expires_uses || link.expire_at}
+      Yes
     {:else}
-      Never
+      No
     {/if}
   </td>
   <td class="w-1/6 text-center">

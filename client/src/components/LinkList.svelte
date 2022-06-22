@@ -43,7 +43,7 @@
     <tr>
       <th>Slug</th>
       <th>URL</th>
-      <th>Expires after</th>
+      <th>Set to expire</th>
       <th>Controls</th>
     </tr>
     {#each links as link}
