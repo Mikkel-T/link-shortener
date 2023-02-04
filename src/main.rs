@@ -70,8 +70,8 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    if missing_paths.len() > 0 {
-        println!("Missing the following HTML files. Aborting");
+    if !missing_paths.is_empty() {
+        println!("Missing the following HTML client files. Aborting");
         for path in missing_paths {
             println!("{path}");
         }
@@ -82,12 +82,12 @@ async fn main() -> std::io::Result<()> {
     let mut missing_env_vars = Vec::new();
 
     for var in env_vars {
-        if !env::var(var).is_ok() {
+        if env::var(var).is_err() {
             missing_env_vars.push(var);
         }
     }
 
-    if missing_env_vars.len() > 0 {
+    if !missing_env_vars.is_empty() {
         println!("Missing the following environment variables. Aborting");
         for var in missing_env_vars {
             println!("{var}");

@@ -55,22 +55,19 @@ pub async fn use_link(slug: String, collection: &Collection<Link>) -> Option<Str
         .unwrap();
     match link {
         Some(l) => {
-            match l.expires_uses {
-                Some(uses) => {
-                    if uses > 1 {
-                        collection
-                            .update_one(
-                                doc! {"slug": &slug},
-                                doc! {"$inc": {"expires_uses": -1}},
-                                None,
-                            )
-                            .await
-                            .unwrap();
-                    } else {
-                        delete_links(slug, &collection).await;
-                    }
+            if let Some(uses) = l.expires_uses {
+                if uses > 1 {
+                    collection
+                        .update_one(
+                            doc! {"slug": &slug},
+                            doc! {"$inc": {"expires_uses": -1}},
+                            None,
+                        )
+                        .await
+                        .unwrap();
+                } else {
+                    delete_links(slug, collection).await;
                 }
-                None => (),
             }
             Some(l.url)
         }

@@ -75,7 +75,7 @@ pub async fn add_link(
     match get_link(slug.clone(), &links).await {
                 Some(_) => {
                     HttpResponse::Conflict()
-                        .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", slug)}))
+                        .json(json!({"success": false, "message": format!("Link with slug \"{slug}\" already exists")}))
                 },
                 None => {
                     if Url::parse(&link.url).is_err() {
@@ -148,8 +148,8 @@ pub async fn update(
         Link {
             slug: slug.into_inner(),
             url: body.url.clone(),
-            expires_uses: body.expires_uses.clone(),
-            expire_at: body.expire_at.clone(),
+            expires_uses: body.expires_uses,
+            expire_at: body.expire_at,
         },
         &links,
     )
