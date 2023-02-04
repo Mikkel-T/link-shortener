@@ -1,6 +1,8 @@
 <script>
-  import Icon from "@iconify/svelte";
   import { emitter } from "@event/event";
+  import HeroiconsSolidChevronDown from "~icons/heroicons-solid/chevron-down";
+  import HeroiconsSolidChevronRight from "~icons/heroicons-solid/chevron-right";
+  import toast from "svelte-french-toast";
 
   let options = false;
 
@@ -14,8 +16,7 @@
   };
 
   function submit() {
-    emitter.emit(
-      "toast-promise",
+    toast.promise(
       new Promise((res, rej) => {
         let req_link = { url: newLink.url };
         if (options) {
@@ -76,14 +77,16 @@
         required
       />
     </div>
-    <div class="text-center" on:click={() => (options = !options)}>
-      More options <Icon
-        class="mr-1 inline h-5 w-5"
-        icon={options
-          ? "heroicons-solid:chevron-down"
-          : "heroicons-solid:chevron-right"}
-      />
-    </div>
+    <button
+      class="mx-auto block text-center"
+      on:click={() => (options = !options)}
+    >
+      More options {#if options}
+        <HeroiconsSolidChevronDown class="mr-1 inline h-5 w-5" />
+      {:else}
+        <HeroiconsSolidChevronRight class="mr-1 inline h-5 w-5" />
+      {/if}
+    </button>
     {#if options}
       <div class=" mx-auto w-1/2">
         <div>

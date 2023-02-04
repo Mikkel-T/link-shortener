@@ -1,15 +1,18 @@
 <script>
-  import Icon from "@iconify/svelte";
   import Clipboard from "@components/Clipboard.svelte";
   import { emitter } from "@event/event";
+  import toast from "svelte-french-toast";
+  import IcRoundCopyAll from "~icons/ic/round-copy-all";
+  import IcRoundDelete from "~icons/ic/round-delete";
+  import IcRoundCheck from "~icons/ic/round-check";
+  import IcRoundEdit from "~icons/ic/round-edit";
   export let link;
 
   let editing = false;
   let newLink = link;
 
   function deleteSlug() {
-    emitter.emit(
-      "toast-promise",
+    toast.promise(
       new Promise((res, rej) => {
         fetch(`/api/admin/links/${link.slug}`, {
           method: "DELETE",
@@ -34,8 +37,7 @@
   }
 
   function editUrl() {
-    emitter.emit(
-      "toast-promise",
+    toast.promise(
       new Promise((res, rej) => {
         fetch(`/api/admin/links/${link.slug}`, {
           method: "PATCH",
@@ -79,7 +81,7 @@
         <div
           class="m-1 inline-flex h-6 w-6 rounded-md bg-dracula-blue p-1 hover:bg-dracula-blue-700"
         >
-          <Icon class="h-fit w-fit" icon="ic:round-copy-all" />
+          <IcRoundCopyAll class="h-fit w-fit" />
         </div>
       </span>
     </Clipboard>
@@ -108,21 +110,21 @@
       class="m-1 h-6 w-6 rounded-md bg-dracula-red p-1 hover:bg-dracula-red-500"
       on:click={deleteSlug}
     >
-      <Icon class="h-fit w-fit" icon="ic:round-delete" />
+      <IcRoundDelete class="h-fit w-fit" />
     </button>
     {#if editing}
       <button
         class="m-1 h-6 w-6 rounded-md bg-dracula-green-700 p-1 hover:bg-dracula-green-800"
         on:click={editUrl}
       >
-        <Icon class="h-fit w-fit" icon="ic:round-check" />
+        <IcRoundCheck class="h-fit w-fit" />
       </button>
     {:else}
       <button
         class="m-1 h-6 w-6 rounded-md bg-dracula-orange-300 p-1 hover:bg-dracula-orange-400"
         on:click={edit}
       >
-        <Icon class="h-fit w-fit" icon="ic:round-edit" />
+        <IcRoundEdit class="h-fit w-fit" />
       </button>
     {/if}
   </td>

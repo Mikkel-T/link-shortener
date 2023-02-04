@@ -3,22 +3,22 @@ import BaseLayout from "layout:BaseLayout";
 ---
 
 <BaseLayout>
-  <div class="h-full w-full flex justify-center items-center flex-col">
+  <div class="flex h-full w-full flex-col items-center justify-center">
     <form
       action="/api/admin/login"
       method="post"
-      class="flex items-center w-full justify-center flex-col"
+      class="flex w-full flex-col items-center justify-center"
     >
       <input
         type="password"
         placeholder="Admin password"
         name="password"
-        class="m-auto w-64 bg-dracula-dark p-3 rounded-md"
+        class="m-auto w-64 rounded-md bg-dracula-dark p-3"
       />
       <input
         type="submit"
         value="Submit"
-        class="p-2 w-fit mt-5 bg-dracula-green-800 rounded-md cursor-pointer hover:bg-dracula-green-900"
+        class="mt-5 w-fit cursor-pointer rounded-md bg-dracula-green-800 p-2 hover:bg-dracula-green-900"
       />
     </form>
   </div>

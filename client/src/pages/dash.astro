@@ -1,14 +1,15 @@
 ---
-import BaseLayout from "layout:BaseLayout";
-import NewLinkForm from "@components/NewLinkForm.svelte";
 import LinkList from "@components/LinkList.svelte";
 import LogOutButton from "@components/LogOutButton.svelte";
-import Toaster from "@components/Toaster.jsx";
+import NewLinkForm from "@components/NewLinkForm.svelte";
+import Toaster from "@components/Toaster.svelte";
+
+import BaseLayout from "layout:BaseLayout";
 ---
 
 <BaseLayout>
   <div>
-    <div class="text-center text-2xl font-bold mt-2">Dashboard</div>
+    <div class="mt-2 text-center text-2xl font-bold">Dashboard</div>
     <NewLinkForm client:load />
     <LinkList client:load />
     <LogOutButton client:load />

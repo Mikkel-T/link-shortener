@@ -1,16 +1,14 @@
 <script>
   import copy from "copy-to-clipboard";
-  import { emitter } from "@event/event";
+  import toast from "svelte-french-toast";
   export let text;
   export let message = "Copied link";
   function onCopy() {
     copy(text);
-    emitter.emit("toast", message, {
-      type: "success",
-    });
+    toast.success(message);
   }
 </script>
 
-<span on:click={onCopy} class="cursor-pointer select-none">
+<button on:click={onCopy} class="cursor-pointer select-none">
   <slot />
-</span>
+</button>

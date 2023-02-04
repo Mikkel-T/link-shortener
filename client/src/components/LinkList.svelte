@@ -1,7 +1,8 @@
 <script>
-  import Icon from "@iconify/svelte";
   import TableRow from "@components/TableRow.svelte";
   import { emitter } from "@event/event";
+  import toast from "svelte-french-toast";
+  import IcRoundRefresh from "~icons/ic/round-refresh";
   import { onMount } from "svelte";
 
   let links = [];
@@ -11,8 +12,7 @@
   onMount(fetchLinks);
 
   function fetchLinks() {
-    emitter.emit(
-      "toast-promise",
+    toast.promise(
       new Promise((res, rej) => {
         fetch("/api/admin/links")
           .then((r) => r.json())
@@ -35,7 +35,7 @@
   class="m-auto mb-3 flex items-center justify-center rounded-md bg-dracula-purple p-2 hover:bg-dracula-purple-400"
   on:click={fetchLinks}
 >
-  <Icon class="mr-1 inline h-5 w-5" icon="ic:round-refresh" />
+  <IcRoundRefresh class="mr-1 inline h-5 w-5" />
   Refresh links
 </button>
 {#if links[0]}
