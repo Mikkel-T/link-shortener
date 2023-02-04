@@ -2,8 +2,11 @@ pub mod handle_admin;
 pub mod mongo;
 
 use actix_files::{Files, NamedFile};
-use actix_identity::{CookieIdentityPolicy, Identity, IdentityService};
-use actix_web::{get, http::header, web, App, Either, HttpResponse, HttpServer, Responder};
+use actix_identity::{Identity, IdentityMiddleware};
+use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_web::{
+    cookie::Key, get, web, web::Redirect, App, Either, HttpResponse, HttpServer, Responder,
+};
 use dotenv::dotenv;
 use futures::future;
 use mongo::{get_client, use_link, Link};
@@ -21,12 +24,13 @@ async fn home() -> impl Responder {
 }
 
 #[get("/{slug}")]
-async fn index(links: web::Data<Collection<Link>>, slug: web::Path<String>) -> HttpResponse {
+async fn index(
+    links: web::Data<Collection<Link>>,
+    slug: web::Path<String>,
+) -> Either<Redirect, HttpResponse> {
     match use_link(slug.into_inner(), &links).await {
-        Some(url) => HttpResponse::SeeOther()
-            .insert_header((header::LOCATION, url))
-            .finish(),
-        None => HttpResponse::NotFound().body("404 Link not found"),
+        Some(url) => Either::Left(Redirect::to(url)),
+        None => Either::Right(HttpResponse::NotFound().body("404 Link not found")),
     }
 }
 
@@ -36,26 +40,18 @@ async fn admin() -> Result<NamedFile, Error> {
 }
 
 #[get("/login")]
-async fn login(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
-    match id.identity() {
-        Some(_) => Either::Left(
-            HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/dash"))
-                .finish(),
-        ),
+async fn login(id: Option<Identity>) -> Either<Redirect, Result<NamedFile, Error>> {
+    match id {
+        Some(_) => Either::Left(Redirect::to("/dash")),
         None => Either::Right(NamedFile::open("client/dist/login/index.html")),
     }
 }
 
 #[get("/dash")]
-async fn dash(id: Identity) -> Either<HttpResponse, Result<NamedFile, Error>> {
-    match id.identity() {
+async fn dash(id: Option<Identity>) -> Either<Redirect, Result<NamedFile, Error>> {
+    match id {
         Some(_) => Either::Right(NamedFile::open("client/dist/dash/index.html")),
-        None => Either::Left(
-            HttpResponse::SeeOther()
-                .insert_header((header::LOCATION, "/"))
-                .finish(),
-        ),
+        None => Either::Left(Redirect::to("/")),
     }
 }
 
@@ -126,11 +122,15 @@ async fn main() -> std::io::Result<()> {
     let links = db.collection::<Link>("links");
     let s2 = HttpServer::new(move || {
         App::new()
-            .wrap(IdentityService::new(
-                CookieIdentityPolicy::new(env::var("PASSWORD_KEY").unwrap().as_bytes())
-                    .name("auth")
-                    .secure(false),
-            ))
+            .wrap(IdentityMiddleware::default())
+            .wrap(
+                SessionMiddleware::builder(
+                    CookieSessionStore::default(),
+                    Key::from(env::var("PASSWORD_KEY").unwrap().as_bytes()),
+                )
+                .cookie_secure(false)
+                .build(),
+            )
             .app_data(web::Data::new(links.clone()))
             .service(admin)
             .service(login)

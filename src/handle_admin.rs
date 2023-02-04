@@ -1,6 +1,6 @@
 use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, Link};
 use actix_identity::Identity;
-use actix_web::{http::header, web, HttpResponse};
+use actix_web::{http::header, web, web::Redirect, HttpMessage, HttpRequest, HttpResponse};
 use mongodb::Collection;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -38,44 +38,41 @@ pub struct ResponseLinkBody {
 }
 
 pub async fn logout(id: Identity) -> HttpResponse {
-    id.forget();
+    id.logout();
     HttpResponse::Found()
         .insert_header((header::LOCATION, "/"))
         .finish()
 }
 
-pub async fn login(id: Identity, pass: web::Form<Info>) -> HttpResponse {
+pub async fn login(request: HttpRequest, pass: web::Form<Info>) -> Redirect {
     if pass.password == env::var("ADMIN_PASSWORD").unwrap() {
-        id.remember("admin".to_owned());
+        Identity::login(&request.extensions(), "admin".into()).unwrap();
     };
 
-    HttpResponse::Found()
-        .insert_header((header::LOCATION, "/dash"))
-        .finish()
+    Redirect::to("/dash").see_other()
 }
 
-pub async fn auth_status(id: Identity) -> HttpResponse {
-    match id.identity() {
-        Some(name) => HttpResponse::Ok().json(json!({"logged_in": true, "name": name})),
-        None => HttpResponse::Unauthorized().json(json!({"logged_in": false})),
+pub async fn auth_status(id: Option<Identity>) -> HttpResponse {
+    if let Some(id) = id {
+        HttpResponse::Ok().json(json!({"logged_in": true, "name": id.id().unwrap()}))
+    } else {
+        HttpResponse::Unauthorized().json(json!({"logged_in": false}))
     }
 }
 
 pub async fn add_link(
-    id: Identity,
+    _: Identity,
     links: web::Data<Collection<Link>>,
     link: web::Json<AddLinkBody>,
 ) -> HttpResponse {
-    match id.identity() {
-        Some(_) => {
-            let mut slug = nanoid!(7);
-            if let Some(s) = link.slug.clone() {
-                if !s.is_empty() {
-                    slug = s
-                }
-            }
+    let mut slug = nanoid!(7);
+    if let Some(s) = link.slug.clone() {
+        if !s.is_empty() {
+            slug = s
+        }
+    }
 
-            match get_link(slug.clone(), &links).await {
+    match get_link(slug.clone(), &links).await {
                 Some(_) => {
                     HttpResponse::Conflict()
                         .json(json!({"success": false, "message": format!("Link with slug \"{}\" already exists", slug)}))
@@ -89,12 +86,9 @@ pub async fn add_link(
                     HttpResponse::Created().json(json!({"success": true, "slug": slug, "url": link.url, "id": oid}))
                 },
             }
-        }
-        None => unauthorized(),
-    }
 }
 
-pub async fn fetch_links(id: Identity, links: web::Data<Collection<Link>>) -> HttpResponse {
+pub async fn fetch_links(_: Identity, links: web::Data<Collection<Link>>) -> HttpResponse {
     let links: Vec<ResponseLinkBody> = get_links(&links)
         .await
         .iter()
@@ -105,20 +99,16 @@ pub async fn fetch_links(id: Identity, links: web::Data<Collection<Link>>) -> Ht
             expire_at: link.expire_at,
         })
         .collect();
-    match id.identity() {
-        Some(_) => HttpResponse::Ok().json(json!(links)),
-        None => unauthorized(),
-    }
+
+    HttpResponse::Ok().json(json!(links))
 }
 
 pub async fn fetch_link(
-    id: Identity,
+    _: Identity,
     links: web::Data<Collection<Link>>,
     slug: web::Path<String>,
 ) -> HttpResponse {
-    match id.identity() {
-        Some(_) => {
-            match get_link(slug.clone(), &links).await {
+    match get_link(slug.clone(), &links).await {
                 Some(link) => {
                     HttpResponse::Ok().json(json!({"success": true, "link": ResponseLinkBody {
                         slug: link.slug.clone(),
@@ -130,54 +120,39 @@ pub async fn fetch_link(
                     HttpResponse::NotFound().json(json!({"success": false, "message": format!("Coult not find link with the slug \"{slug}\"")}))
                 }
             }
-        }
-        None => unauthorized(),
-    }
 }
 
 pub async fn delete(
-    id: Identity,
+    _: Identity,
     links: web::Data<Collection<Link>>,
     slug: web::Path<String>,
 ) -> HttpResponse {
-    match id.identity() {
-        Some(_) => {
-            let deleted = delete_links(slug.into_inner(), &links).await.deleted_count;
-            HttpResponse::Ok().json(json!({"success": true, "deleted": deleted}))
-        }
-        None => unauthorized(),
-    }
+    let deleted = delete_links(slug.into_inner(), &links).await.deleted_count;
+    HttpResponse::Ok().json(json!({"success": true, "deleted": deleted}))
 }
 
 pub async fn update(
-    id: Identity,
+    _: Identity,
     links: web::Data<Collection<Link>>,
     body: web::Json<UpdateLinkBody>,
     slug: web::Path<String>,
 ) -> HttpResponse {
-    match id.identity() {
-        Some(_) => {
-            if Url::parse(&body.url).is_err() {
-                return HttpResponse::BadRequest().json(json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}));
-            }
-
-            let modified = update_link(
-                slug.clone(),
-                Link {
-                    slug: slug.into_inner(),
-                    url: body.url.clone(),
-                    expires_uses: body.expires_uses.clone(),
-                    expire_at: body.expire_at.clone(),
-                },
-                &links,
-            )
-            .await;
-            HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
-        }
-        None => unauthorized(),
+    if Url::parse(&body.url).is_err() {
+        return HttpResponse::BadRequest().json(
+            json!({"success": false, "message": format!("\"{}\" is not a valid url", body.url)}),
+        );
     }
-}
 
-pub fn unauthorized() -> HttpResponse {
-    HttpResponse::Unauthorized().body("You are not authorized to do this")
+    let modified = update_link(
+        slug.clone(),
+        Link {
+            slug: slug.into_inner(),
+            url: body.url.clone(),
+            expires_uses: body.expires_uses.clone(),
+            expire_at: body.expire_at.clone(),
+        },
+        &links,
+    )
+    .await;
+    HttpResponse::Ok().json(json!({"success": true, "modified": modified}))
 }
