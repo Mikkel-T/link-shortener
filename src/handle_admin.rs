@@ -1,6 +1,6 @@
 use crate::mongo::{delete_links, get_link, get_links, insert_link, update_link, Link};
 use actix_identity::Identity;
-use actix_web::{http::header, web, web::Redirect, HttpMessage, HttpRequest, HttpResponse};
+use actix_web::{web, web::Redirect, HttpMessage, HttpRequest, HttpResponse};
 use mongodb::Collection;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -37,11 +37,9 @@ pub struct ResponseLinkBody {
     expire_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
-pub async fn logout(id: Identity) -> HttpResponse {
+pub async fn logout(id: Identity) -> Redirect {
     id.logout();
-    HttpResponse::Found()
-        .insert_header((header::LOCATION, "/"))
-        .finish()
+    Redirect::to("/")
 }
 
 pub async fn login(request: HttpRequest, pass: web::Form<Info>) -> Redirect {
@@ -117,7 +115,7 @@ pub async fn fetch_link(
                         expire_at: link.expire_at
                     }}))}
                 None => {
-                    HttpResponse::NotFound().json(json!({"success": false, "message": format!("Coult not find link with the slug \"{slug}\"")}))
+                    HttpResponse::NotFound().json(json!({"success": false, "message": format!("Could not find link with the slug \"{slug}\"")}))
                 }
             }
 }
